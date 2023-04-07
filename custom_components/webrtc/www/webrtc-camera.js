@@ -26,7 +26,7 @@ class WebRTCCamera extends VideoRTC {
          *     ptz:{
          *         opacity:number|string, service:string,
          *         data_left, data_up, data_right, data_down,
-         *         data_zoom_in, data_zoom_out, data_home
+         *         data_stop, data_zoom_in, data_zoom_out, data_home
          *     },
          *     shortcuts:Array<{name:string,icon:string}>,
          *     mse:boolean, webrtc:boolean,
@@ -184,6 +184,7 @@ class WebRTCCamera extends VideoRTC {
         if (!this.config.ptz || !this.config.ptz.service) return;
 
         const hasMove = this.config.ptz.data_right;
+        const hasStop = this.config.ptz.data_stop;
         const hasZoom = this.config.ptz.data_zoom_in;
         const hasHome = this.config.ptz.data_home;
 
@@ -292,13 +293,30 @@ class WebRTCCamera extends VideoRTC {
         `);
 
         const ptz = this.querySelector('.ptz')
-        ptz.addEventListener('click', ev => {
-            const data = this.config.ptz['data_' + ev.target.className];
-            if (!data) return;
-
-            const [domain, service] = this.config.ptz.service.split('.', 2);
-            this.hass.callService(domain, service, data);
-        });
+        if (hasStop) {
+            ptz.addEventListener('mousedown', ev => {
+                const data = this.config.ptz['data_' + ev.target.className];
+                if (!data) return;
+    
+                const [domain, service] = this.config.ptz.service.split('.', 2);
+                this.hass.callService(domain, service, data);
+            });
+            ptz.addEventListener('mouseup', ev => {
+                const data = this.config.ptz['data_stop'];
+                if (!data) return;
+    
+                const [domain, service] = this.config.ptz.service.split('.', 2);
+                this.hass.callService(domain, service, data);
+            });
+        } else {
+            ptz.addEventListener('click', ev => {
+                const data = this.config.ptz['data_' + ev.target.className];
+                if (!data) return;
+    
+                const [domain, service] = this.config.ptz.service.split('.', 2);
+                this.hass.callService(domain, service, data);
+            });
+        }
     }
 
     renderCustomUI() {
